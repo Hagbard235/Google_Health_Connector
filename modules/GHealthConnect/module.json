@@ -1,0 +1,13 @@
+{
+    "id": "{EAD5CC92-900C-427C-8B36-82C17F1B66E6}",
+    "name": "Google Health Connect",
+    "type": 3,
+    "vendor": "Andre Schmidt",
+    "aliases": [
+        "Google Health"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "GHC"
+}
