@@ -11,7 +11,7 @@ class GoogleHealthConnector extends IPSModule
 
         $this->RegisterHook('/hook/googlehealth');
 
-        // Register all properties from form.json dynamically
+        // Register all properties from form.json
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
         foreach ($form['actions'][0]['tabs'] as $tab) {
             foreach ($tab['items'] as $item) {
@@ -42,24 +42,21 @@ class GoogleHealthConnector extends IPSModule
     }
 
     /**
-     * This function is called when data is received via the WebHook.
+     * This function will be called by the hook.
      */
     public function ProcessHookData()
     {
         $this->SendDebug('Hook Called', 'Received data from Companion App', 0);
 
-        // Get JSON payload from the HTTP POST request
+        // Get JSON payload from WebHook
         $payload = file_get_contents('php://input');
         if ($payload === false) {
-            $this->SendDebug('Error', 'Failed to read php://input or payload is empty', 0);
-            http_response_code(400); // Bad Request
-            echo 'Empty payload';
+            $this->SendDebug('Error', 'Failed to read php://input', 0);
             return;
         }
 
         $data = json_decode($payload, true);
 
-        // Check if JSON is valid
         if ($data === null) {
             $this->SendDebug('Invalid JSON', 'Received non-JSON payload: ' . $payload, 0);
             http_response_code(400); // Bad Request
@@ -70,20 +67,14 @@ class GoogleHealthConnector extends IPSModule
         $this->SendDebug('Payload', json_encode($data), 0);
 
         // Process each data point from the payload
-        // The key (e.g., "steps", "weight") should be sent by the companion app
         foreach ($data as $key => $record) {
-            // Create the property name from the key (e.g., "steps" -> "EnableSteps")
             $propertyName = 'Enable' . str_replace('_', '', ucwords($key, '_'));
-            
-            // Check if the user wants to sync this data type
             if ($this->ReadPropertyBoolean($propertyName)) {
-                // Create the handler method name (e.g., "steps" -> "ProcessStepsData")
                 $handlerMethod = 'Process' . str_replace('_', '', ucwords($key, '_')) . 'Data';
                 if (method_exists($this, $handlerMethod)) {
-                    // Call the specific handler for this data type
                     $this->$handlerMethod($record);
                 } else {
-                    $this->SendDebug('Missing Handler', "No handler method found for key: '$key' (expected method: '$handlerMethod')", 0);
+                    $this->SendDebug('Missing Handler', "No handler method found for: $key", 0);
                 }
             }
         }
@@ -94,7 +85,7 @@ class GoogleHealthConnector extends IPSModule
 
     private function GetHookURL(): string
     {
-        // We need to find the correct IP-Symcon Connect Service instance
+        // We need to find the correct IP-Symcon Connect Service
         $connectIDs = IPS_GetInstanceListByModuleID('{9486D575-BE8C-4ED8-B5B5-20930E26DE6F}');
         if (isset($connectIDs[0])) {
             $connectInstance = $connectIDs[0];
@@ -245,10 +236,13 @@ class GoogleHealthConnector extends IPSModule
      */
     private function CreateVariableProfiles()
     {
+        $this->SendDebug('Profiles', 'Creating variable profiles', 0);
+
         if (!IPS_VariableProfileExists('GHC.mmHg')) {
             IPS_CreateVariableProfile('GHC.mmHg', VARIABLETYPE_INTEGER);
             IPS_SetVariableProfileText('GHC.mmHg', '', ' mmHg');
             IPS_SetVariableProfileValues('GHC.mmHg', 40, 200, 1);
+            $this->SendDebug('Profile Created', 'GHC.mmHg', 0);
         }
 
         // Profile for SpO2
@@ -258,6 +252,7 @@ class GoogleHealthConnector extends IPSModule
             IPS_SetVariableProfileDigits('GHC.Percent', 1);
             IPS_SetVariableProfileValues('GHC.Percent', 80, 100, 0.1);
             IPS_SetVariableProfileIcon('GHC.Percent', 'Drops');
+            $this->SendDebug('Profile Created', 'GHC.Percent for SpO2', 0);
         }
 
         // Profile for kcal
@@ -266,6 +261,7 @@ class GoogleHealthConnector extends IPSModule
             IPS_SetVariableProfileText('GHC.kcal', '', ' kcal');
             IPS_SetVariableProfileDigits('GHC.kcal', 0);
             IPS_SetVariableProfileIcon('GHC.kcal', 'Flame');
+            $this->SendDebug('Profile Created', 'GHC.kcal', 0);
         }
     }
 
@@ -282,17 +278,11 @@ class GoogleHealthConnector extends IPSModule
 }
 ```
 
-### Nächste Schritte
+### 4. `locale.json` (Übersetzungen)
 
-1.  **`form.json` erstellen**: Erstelle die Konfigurationsdatei, in der der Benutzer die Checkboxen (`EnableSteps`, `EnableWeight` etc.) anhaken kann.
-2.  **`module.php` vervollständigen**:
-   *   Füge für jeden Datentyp eine `RegisterPropertyBoolean`-Zeile in `Create()` hinzu.
-   *   Füge für jeden Datentyp eine `MaintainVariable`-Zeile in `MaintainVariables()` hinzu.
-   *   Implementiere für jeden Datentyp eine `Process...Data`-Funktion, um die Daten zu verarbeiten und mit `SetValue` in die Variable zu schreiben.
-3.  **Companion App**: Definiere (oder entwickle) die Android App, die die Daten im erwarteten JSON-Format an den WebHook sendet.
+Diese Datei ermöglicht die Übersetzung der Texte im Konfigurationsformular.
 
-Dieses Gerüst gibt dir eine hervorragende Ausgangsbasis. Viel Erfolg bei der weiteren Entwicklung!
-
-<!--
-[PROMPT_SUGGESTION]Erstelle jetzt die passende `form.json` und `locale.json` für die in `module.php` definierten Eigenschaften.[/PROMPT_SUGGESTION]
-[PROMPT_SUGGESTION]Vervollständige die `module.php` mit allen Daten-Handlern und der Logik zum Erstellen der Variablen, basierend auf der `form.json` aus dem Kontext.[/PROMPT_SUGGESTION]
+```diff
+--- /dev/null
++++ b/c:/Users/schmi/OneDrive/OneDrive/Dokumente/Projekte/Google Health Connct/Google_Health_Connector/locale.json
+{
