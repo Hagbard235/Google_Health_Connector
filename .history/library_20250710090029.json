@@ -1,0 +1,32 @@
+{
+    "id": "{C1A8E2B3-3C4D-4E5F-8A6B-7C8D9E0F1A2B}",
+    "author": "schmi",
+    "name": "Google Health Connector Library",
+    "url": "https://github.com/Hagbard235/Google_Health_Connector",
+    "version": "1.0",
+    "build": 0,
+    "date": 0,
+    "modules": [
+        {
+            "id": "{A0E1A8A2-259E-4423-8243-7B5451E28345}",
+            "name": "Google Health Connector",
+            "type": 3,
+            "vendor": "Community",
+            "aliases": [
+                "Health Connect",
+                "Google Health"
+            ],
+            "author": "schmi",
+            "url": "https://github.com/Hagbard235/Google_Health_Connector",
+            "parentRequirements": [
+                "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
+            ],
+            "childRequirements": [],
+            "implemented": [
+                "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
+            ],
+            "prefix": "GHC",
+            "directory": "Google_Healt_Connector"
+        }
+    ]
+}
